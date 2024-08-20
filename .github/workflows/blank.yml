@@ -15,10 +15,15 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-      - name: Set up SSH
+      - name: ssh setup
+        shell: bash
         run: |
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key.pem
-          chmod 600 private_key.pem
+         eval `ssh-agent -s`
+         mkdir -p /home/runner/.ssh/
+         touch /home/runner/.ssh/id_rsa
+         echo -e "${{secrets.SSH_PRIVATE_KEY}}" > /home/runner/.ssh/id_rsa
+         chmod 700 /home/runner/.ssh/id_rsa
+         ssh-keyscan -t rsa,dsa,ecdsa,ed25519 ${{secrets.SSH_HOST}} >> /home/runner/.ssh/known_hosts
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -34,9 +39,8 @@ jobs:
         run: |
           ansible-playbook -i inventory.yml playbook.yml
       - name: Run Ansible Playbook
-        env:
-          ANSIBLE_USER: ${{ secrets.ANSIBLE_USER }}
-          ANSIBLE_HOST_KEY_CHECKING: False
+        shell: bash 
         run: |
-          ansible-playbook -i inventory.yml playbook.yml --private-key private_key.pem -u ${{ secrets.ANSIBLE_USER }}
+          service ssh status
+          ansible-playbook -vvv --private-key /home/runner/.ssh/id_rsa -u ${{secrets.ANSIBLE_DEPLOY_USER}} -i inventory.yml playbook.yml
 
