@@ -43,7 +43,7 @@ jobs:
       - name: Check SSH Connection
         shell: bash
         run: |
-          hosts=("35.238.96.106" "192.168.1.2" "example.com")
+          hosts=("35.238.96.106" "34.71.102.253" "example.com")
           for host in "${hosts[@]}"; do
             ssh -vvv -o StrictHostKeyChecking=no -i /home/runner/.ssh/id_rsa ${{ secrets.ANSIBLE_USER }}@$host "echo 'SSH connection successful to $host'"
           done
